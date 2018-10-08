@@ -7,6 +7,7 @@ Update:
 3. FocusController.cs
 4. Export Classes in JsBindingSettings.cs -> then run jsbinding!
 5. Stop loading assets in JsLoader
+6. Add Screenshot Script
 
 
 Add:
