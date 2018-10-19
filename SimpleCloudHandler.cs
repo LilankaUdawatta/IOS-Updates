@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Vuforia;
 using UnityEngine.UI;
 using System.Threading.Tasks;
@@ -105,6 +106,7 @@ public class SimpleCloudHandler : MonoBehaviour, ICloudRecoEventHandler
 		}*/
 
 		/* Added ===========================================================================*/
+		print("All " + Resources.FindObjectsOfTypeAll<UnityEngine.Object>().Length);
 
 		mParentOfImageTargetTemplate = ImageTargetTemplate.gameObject;
 		
@@ -123,6 +125,7 @@ public class SimpleCloudHandler : MonoBehaviour, ICloudRecoEventHandler
 		//LoadingPrefab.SetActive(false);
         
         loadSignInUPUI ();
+		
 		
 	}
 
@@ -494,16 +497,18 @@ public class SimpleCloudHandler : MonoBehaviour, ICloudRecoEventHandler
 
             bytes = www.bytes;
             Debug.Log (bytes);
-            File.WriteAllBytes(Application.streamingAssetsPath + "/" +  "JavaScript" + "/" + "ui_controller.javascript", bytes); 
+
+			//this is just writing to a file, not sure whether it is making one
+            File.WriteAllBytes(Application.persistentDataPath + "/" + "ui_controller.javascript", bytes); //Application.streamingAssetsPath 
             
-            Debug.Log ("Script Name is ");
+            /*Debug.Log ("Script Name is ");
             DirectoryInfo dir = new DirectoryInfo(Application.streamingAssetsPath + "/" +  "JavaScript");
             FileInfo[] info = dir.GetFiles("*.*");
             
             foreach (FileInfo f in info)
             {
                 Debug.Log(f.ToString());
-            }
+            }*/
     
             Debug.Log ("This is the end of the list");
             DestroyLoadingAnimation (); 
@@ -646,12 +651,145 @@ void DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEv
     
     public void InitiateJavaScriptEngine()
     {
+		CopyToPersistentDataPath();
         GameObject JsEngine = Resources.Load ("JavaScript/_JSEngine") as GameObject;
         GameObject JsController = Resources.Load ("JavaScript/Controller") as GameObject;
         JsEngine = Instantiate (JsEngine);
         JsController = Instantiate (JsController);
     }
+
+	public void CopyToPersistentDataPath()
+	{
+		string Link; 
+		string ScriptName;
+		string PathToSave;
+		string sourcePath = "";
+		string targetPath =  "";
+
+		string path = Path.Combine(Application.persistentDataPath, "Lib");
+		string path1 = Path.Combine(path, "Manual");
+		{
+			Directory.CreateDirectory (path1);
+
+			//Path JavaScript
+			sourcePath = Application.streamingAssetsPath + "/JavaScript";
+			targetPath =  Application.persistentDataPath;
+			copyFiles(sourcePath, targetPath);
+
+			//Path JavaScript/Lib
+			sourcePath = Application.streamingAssetsPath + "/JavaScript/Lib";
+			targetPath =  path;
+			copyFiles(sourcePath, targetPath);
+
+			//Path JavaScript/Lib/Manual
+			sourcePath = Application.streamingAssetsPath + "/JavaScript/Lib/Manual";
+			targetPath =  path1;
+			copyFiles(sourcePath, targetPath);
+
+		}
+		string path11 = Path.Combine(path, "Sk");
+		{
+			//Path JavaScript/Lib/Sk
+			Directory.CreateDirectory (path11);
+			sourcePath = Application.streamingAssetsPath +  "/JavaScript/Lib/Sk";
+			targetPath =  path11;
+			copyFiles(sourcePath, targetPath); //checked!!
+		} 
+
+		string path2 = Path.Combine(Application.persistentDataPath, "Samples");
+		path2 = Path.Combine(path2, "2048");
+		{
+			string path3 = Path.Combine(path2, "Modified");
+			{
+				Directory.CreateDirectory (path3);
+				sourcePath = Application.streamingAssetsPath + "/JavaScript/Samples/2048/Modified";
+				targetPath =  path3;
+				copyFiles(sourcePath, targetPath);
+			} 
+			string path33 = Path.Combine(path2, "Official");
+			{
+				Directory.CreateDirectory (path33);
+				sourcePath = Application.streamingAssetsPath + "/JavaScript/Samples/2048/Official";
+				targetPath =  path33;
+				copyFiles(sourcePath, targetPath);
+			} 
+		}	
+	 	
+	}
+
+	/*IEnumerator DownloadBundleJsScripts (string Link, string ScriptName, string PathToSave){
+
+		if(www != null)
+		{
+			www.Dispose();
+       		www = null;
+			asseBundle.Unload(false);
+		}
+
+
+        // Wait for the Caching system to be ready
+        while (!Caching.ready)
+            yield return null;
+ 
+        // Update url_loaded to prevent downloading assets again for the reco 
+        //url_loaded = url;
+        //download AssetBundle
+        www = new WWW(Link);
+        // using (www = new WWW(url)) -- Or use this
+        using (www)
+        {
+            
+            //wait for download
+            yield return www;
+            
+            Debug.Log ("Script Loaded Here ");
+            if (www.error != null)
+            throw new Exception ("WWW download had an error: " + www.error);
+
+            bytes = www.bytes;
+            Debug.Log (bytes);
+
+			//this is just writing to a file, not sure whether it is making one
+            File.WriteAllBytes(PathToSave + "/" + ScriptName, bytes); //Application.streamingAssetsPath 
+            
     
+            Debug.Log ("This is the end of the list");
+            //DestroyLoadingAnimation (); 
+            //InitiateJavaScriptEngine();
+        }   
+    }   */
+    
+	public void copyFiles(string sourcePath, string targetPath)
+	{
+		if (System.IO.Directory.Exists(sourcePath))
+        {
+        	 string[] files = System.IO.Directory.GetFiles(sourcePath);
+
+        	// Copy the files and overwrite destination files if they already exist.
+        	foreach (string s in files)
+            {
+            	// Use static Path methods to extract only the file name from the path.
+                string fileName = System.IO.Path.GetFileName(s);
+                string destFile = System.IO.Path.Combine(targetPath, fileName);
+                System.IO.File.Copy(s, destFile, true);
+            }
+        }
+		
+        else
+    	{
+        	Console.WriteLine("Source path does not exist!");
+        }
+
+		/*foreach (string s in files)
+            {
+            	// Use static Path methods to extract only the file name from the path.
+				string fileNameWithExtension = System.IO.Path.GetFileName(s);
+                string fileName = System.IO.Path.GetFileNameWithoutExtension(s);
+                TextAsset ScriptAsset;
+     			ScriptAsset = Resources.Load (System.IO.sourcePath.GetFileNameWithoutExtension (fileName)) as TextAsset;
+     			File.WriteAllBytes(targetPath + "/" + fileNameWithExtension, imageTextAsset.bytes);
+            }*/
+	}
     
     public void DestroyLoadingAnimation ()
     {
